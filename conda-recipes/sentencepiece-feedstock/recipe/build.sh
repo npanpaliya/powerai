@@ -25,10 +25,9 @@ build_tf_wrapper() {
   export IBM_POWERAI_LICENSE_ACCEPT=yes
   conda create -n tf$1 -y python=3.6
 
-  source /etc/profile.d/conda.sh
-
   conda activate tf$1
   conda config --prepend channels https://public.dhe.ibm.com/ibmdl/export/pub/software/server/ibm-ai/conda/
+  conda config --prepend channels http://ausgsa.ibm.com/projects/p/powerai-conda/conda-early-access/
 
   # Builds _sentencepiece_processor_ops.so
   conda install -y tensorflow${pkg_name}
@@ -42,6 +41,8 @@ build_tf_wrapper() {
   echo TF_VERSION=${TF_VERSION}
   CUR_DIR=$(pwd)
   echo "Current dir: $CUR_DIR"
+
+  conda deactivate
   
   g++ -std=c++11 -shared \
     -I../src \
@@ -54,7 +55,7 @@ build_tf_wrapper() {
     ${TF_LFLAGS[@]}
 
   strip ../tensorflow/tf_sentencepiece/_sentencepiece_processor_ops.so.${TF_VERSION}
-  conda deactivate
+  conda env remove -n tf$1
 }
 
 ARCH=`uname -p`
@@ -75,9 +76,10 @@ export PKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}
 export LD_LIBRARY_PATH=${PREFIX}/lib:${LD_LIBRARY_PATH}
 make install
 
-#build_tf_wrapper "2.0.0"
-build_tf_wrapper "1.14.0"
 build_tf_wrapper "1.13.1"
+build_tf_wrapper "1.14.0"
+build_tf_wrapper "1.15.0"
+build_tf_wrapper "2.1.0"
 
 cd ../python
 
